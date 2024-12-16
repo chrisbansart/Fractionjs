@@ -31,7 +31,11 @@
  */
 
 // Set Identity function to downgrade BigInt to Number if needed
-if (typeof BigInt === 'undefined') BigInt = function (n) { if (isNaN(n)) throw new Error(""); return n; };
+if (typeof BigInt === "undefined")
+  BigInt = function (n) {
+    if (isNaN(n)) throw new Error("");
+    return n;
+  };
 
 const C_ONE = BigInt(1);
 const C_ZERO = BigInt(0);
@@ -46,13 +50,12 @@ const MAX_CYCLE_LEN = 2000;
 
 // Parsed data to avoid calling "new" all the time
 const P = {
-  "s": C_ONE,
-  "n": C_ZERO,
-  "d": C_ONE
+  s: C_ONE,
+  n: C_ZERO,
+  d: C_ONE,
 };
 
 function assign(n, s) {
-
   try {
     n = BigInt(n);
   } catch (e) {
@@ -63,7 +66,6 @@ function assign(n, s) {
 
 // Creates a new Fraction internally without the need of the bulky constructor
 function newFraction(n, d) {
-
   if (d === C_ZERO) {
     throw DivisionByZero();
   }
@@ -73,15 +75,14 @@ function newFraction(n, d) {
 
   n = n < C_ZERO ? -n : n;
 
-  const a = gcd(n, d);
+  // const a = gcd(n, d);
 
-  f["n"] = n / a;
-  f["d"] = d / a;
+  f["n"] = n; // / a;
+  f["d"] = d; // / a;
   return f;
 }
 
 function factorize(num) {
-
   const factors = {};
 
   let n = num;
@@ -89,7 +90,6 @@ function factorize(num) {
   let s = C_FIVE - C_ONE;
 
   while (s <= n) {
-
     while (n % i === C_ZERO) {
       n /= i;
       factors[i] = (factors[i] || C_ZERO) + C_ONE;
@@ -98,8 +98,7 @@ function factorize(num) {
   }
 
   if (n !== num) {
-    if (n > 1)
-      factors[n] = (factors[n] || C_ZERO) + C_ONE;
+    if (n > 1) factors[n] = (factors[n] || C_ZERO) + C_ONE;
   } else {
     factors[num] = (factors[num] || C_ZERO) + C_ONE;
   }
@@ -107,17 +106,16 @@ function factorize(num) {
 }
 
 const parse = function (p1, p2) {
-
-  let n = C_ZERO, d = C_ONE, s = C_ONE;
+  let n = C_ZERO,
+    d = C_ONE,
+    s = C_ONE;
 
   if (p1 === undefined || p1 === null) {
     /* void */
   } else if (p2 !== undefined) {
-
-    if ((typeof p1 === "bigint") && (typeof p1 === "bigint")) {
+    if (typeof p1 === "bigint" && typeof p1 === "bigint") {
       /* void */
     } else if (!isNaN(p2) && !isNaN(p1)) {
-
       if (p1 % 1 !== 0 || p2 % 1 !== 0) {
         throw NonIntegerParameter();
       }
@@ -125,21 +123,17 @@ const parse = function (p1, p2) {
       n = BigInt(p1);
       d = BigInt(p2);
       s = n * d;
-
     } else {
       throw InvalidParameter();
     }
-
   } else if (typeof p1 === "object") {
     if ("d" in p1 && "n" in p1) {
       n = BigInt(p1["n"]);
       d = BigInt(p1["d"]);
-      if ("s" in p1)
-        n *= BigInt(p1["s"]);
+      if ("s" in p1) n *= BigInt(p1["s"]);
     } else if (0 in p1) {
       n = BigInt(p1[0]);
-      if (1 in p1)
-        d = BigInt(p1[1]);
+      if (1 in p1) d = BigInt(p1[1]);
     } else if (p1 instanceof BigInt) {
       n = BigInt(p1);
     } else {
@@ -151,7 +145,6 @@ const parse = function (p1, p2) {
     s = p1;
     d = C_ONE;
   } else if (typeof p1 === "number") {
-
     if (isNaN(p1)) {
       throw InvalidParameter();
     }
@@ -163,12 +156,15 @@ const parse = function (p1, p2) {
 
     if (p1 % 1 === 0) {
       n = BigInt(p1);
-    } else if (p1 > 0) { // check for != 0, scale would become NaN (log(0)), which converges really slow
+    } else if (p1 > 0) {
+      // check for != 0, scale would become NaN (log(0)), which converges really slow
 
       let z = 1;
 
-      let A = 0, B = 1;
-      let C = 1, D = 1;
+      let A = 0,
+        B = 1;
+      let C = 1,
+        D = 1;
 
       let N = 10000000;
 
@@ -194,9 +190,7 @@ const parse = function (p1, p2) {
             d = B;
           }
           break;
-
         } else {
-
           if (p1 > M) {
             A += C;
             B += D;
@@ -216,69 +210,81 @@ const parse = function (p1, p2) {
       }
       n = BigInt(n) * BigInt(z);
       d = BigInt(d);
-
     }
-
   } else if (typeof p1 === "string") {
-
     let ndx = 0;
 
-    let v = C_ZERO, w = C_ZERO, x = C_ZERO, y = C_ONE, z = C_ONE;
+    let v = C_ZERO,
+      w = C_ZERO,
+      x = C_ZERO,
+      y = C_ONE,
+      z = C_ONE;
 
     let match = p1.match(/\d+|./g);
 
-    if (match === null)
-      throw InvalidParameter();
+    if (match === null) throw InvalidParameter();
 
-    if (match[ndx] === '-') {// Check for minus sign at the beginning
+    if (match[ndx] === "-") {
+      // Check for minus sign at the beginning
       s = -C_ONE;
       ndx++;
-    } else if (match[ndx] === '+') {// Check for plus sign at the beginning
+    } else if (match[ndx] === "+") {
+      // Check for plus sign at the beginning
       ndx++;
     }
 
-    if (match.length === ndx + 1) { // Check if it's just a simple number "1234"
+    if (match.length === ndx + 1) {
+      // Check if it's just a simple number "1234"
       w = assign(match[ndx++], s);
-    } else if (match[ndx + 1] === '.' || match[ndx] === '.') { // Check if it's a decimal number
+    } else if (match[ndx + 1] === "." || match[ndx] === ".") {
+      // Check if it's a decimal number
 
-      if (match[ndx] !== '.') { // Handle 0.5 and .5
+      if (match[ndx] !== ".") {
+        // Handle 0.5 and .5
         v = assign(match[ndx++], s);
       }
       ndx++;
 
       // Check for decimal places
-      if (ndx + 1 === match.length || match[ndx + 1] === '(' && match[ndx + 3] === ')' || match[ndx + 1] === "'" && match[ndx + 3] === "'") {
+      if (
+        ndx + 1 === match.length ||
+        (match[ndx + 1] === "(" && match[ndx + 3] === ")") ||
+        (match[ndx + 1] === "'" && match[ndx + 3] === "'")
+      ) {
         w = assign(match[ndx], s);
         y = C_TEN ** BigInt(match[ndx].length);
         ndx++;
       }
 
       // Check for repeating places
-      if (match[ndx] === '(' && match[ndx + 2] === ')' || match[ndx] === "'" && match[ndx + 2] === "'") {
+      if (
+        (match[ndx] === "(" && match[ndx + 2] === ")") ||
+        (match[ndx] === "'" && match[ndx + 2] === "'")
+      ) {
         x = assign(match[ndx + 1], s);
         z = C_TEN ** BigInt(match[ndx + 1].length) - C_ONE;
         ndx += 3;
       }
-
-    } else if (match[ndx + 1] === '/' || match[ndx + 1] === ':') { // Check for a simple fraction "123/456" or "123:456"
+    } else if (match[ndx + 1] === "/" || match[ndx + 1] === ":") {
+      // Check for a simple fraction "123/456" or "123:456"
       w = assign(match[ndx], s);
       y = assign(match[ndx + 2], C_ONE);
       ndx += 3;
-    } else if (match[ndx + 3] === '/' && match[ndx + 1] === ' ') { // Check for a complex fraction "123 1/2"
+    } else if (match[ndx + 3] === "/" && match[ndx + 1] === " ") {
+      // Check for a complex fraction "123 1/2"
       v = assign(match[ndx], s);
       w = assign(match[ndx + 2], s);
       y = assign(match[ndx + 4], C_ONE);
       ndx += 5;
     }
 
-    if (match.length <= ndx) { // Check for more tokens on the stack
+    if (match.length <= ndx) {
+      // Check for more tokens on the stack
       d = y * z;
-      s = /* void */
-        n = x + d * v + z * w;
+      s = /* void */ n = x + d * v + z * w;
     } else {
       throw InvalidParameter();
     }
-
   } else {
     throw InvalidParameter();
   }
@@ -293,10 +299,8 @@ const parse = function (p1, p2) {
 };
 
 function modpow(b, e, m) {
-
   let r = C_ONE;
   for (; e > C_ZERO; b = (b * b) % m, e >>= C_ONE) {
-
     if (e & C_ONE) {
       r = (r * b) % m;
     }
@@ -305,16 +309,12 @@ function modpow(b, e, m) {
 }
 
 function cycleLen(n, d) {
+  for (; d % C_TWO === C_ZERO; d /= C_TWO) {}
 
-  for (; d % C_TWO === C_ZERO;
-    d /= C_TWO) {
-  }
+  for (; d % C_FIVE === C_ZERO; d /= C_FIVE) {}
 
-  for (; d % C_FIVE === C_ZERO;
-    d /= C_FIVE) {
-  }
-
-  if (d === C_ONE) // Catch non-cyclic numbers
+  if (d === C_ONE)
+    // Catch non-cyclic numbers
     return C_ZERO;
 
   // If we would like to compute really large numbers quicker, we could make use of Fermat's little theorem:
@@ -326,45 +326,38 @@ function cycleLen(n, d) {
   let t = 1;
 
   for (; rem !== C_ONE; t++) {
-    rem = rem * C_TEN % d;
+    rem = (rem * C_TEN) % d;
 
-    if (t > MAX_CYCLE_LEN)
-      return C_ZERO; // Returning 0 here means that we don't print it as a cyclic number. It's likely that the answer is `d-1`
+    if (t > MAX_CYCLE_LEN) return C_ZERO; // Returning 0 here means that we don't print it as a cyclic number. It's likely that the answer is `d-1`
   }
   return BigInt(t);
 }
 
 function cycleStart(n, d, len) {
-
   let rem1 = C_ONE;
   let rem2 = modpow(C_TEN, len, d);
 
-  for (let t = 0; t < 300; t++) { // s < ~log10(Number.MAX_VALUE)
+  for (let t = 0; t < 300; t++) {
+    // s < ~log10(Number.MAX_VALUE)
     // Solve 10^s == 10^(s+t) (mod d)
 
-    if (rem1 === rem2)
-      return BigInt(t);
+    if (rem1 === rem2) return BigInt(t);
 
-    rem1 = rem1 * C_TEN % d;
-    rem2 = rem2 * C_TEN % d;
+    rem1 = (rem1 * C_TEN) % d;
+    rem2 = (rem2 * C_TEN) % d;
   }
   return 0;
 }
 
 function gcd(a, b) {
-
-  if (!a)
-    return b;
-  if (!b)
-    return a;
+  if (!a) return b;
+  if (!b) return a;
 
   while (1) {
     a %= b;
-    if (!a)
-      return b;
+    if (!a) return b;
     b %= a;
-    if (!b)
-      return a;
+    if (!b) return a;
   }
 }
 
@@ -376,36 +369,40 @@ function gcd(a, b) {
  * @param {number=} b
  */
 function Fraction(a, b) {
-
   parse(a, b);
-
+  console.log("****************** Fraction - Constructor");
+  this.nonReduced = true;
   if (this instanceof Fraction) {
-    a = gcd(P["d"], P["n"]); // Abuse a
+    //  a = gcd(P["d"], P["n"]); // Abuse a
     this["s"] = P["s"];
-    this["n"] = P["n"] / a;
-    this["d"] = P["d"] / a;
+    this["n"] = P["n"]; // / a;
+    this["d"] = P["d"]; // / a;
   } else {
-    return newFraction(P['s'] * P['n'], P['d']);
+    return newFraction(P["s"] * P["n"], P["d"]);
   }
 }
 
-var DivisionByZero = function () { return new Error("Division by Zero"); };
-var InvalidParameter = function () { return new Error("Invalid argument"); };
-var NonIntegerParameter = function () { return new Error("Parameters must be integer"); };
+var DivisionByZero = function () {
+  return new Error("Division by Zero");
+};
+var InvalidParameter = function () {
+  return new Error("Invalid argument");
+};
+var NonIntegerParameter = function () {
+  return new Error("Parameters must be integer");
+};
 
 Fraction.prototype = {
-
-  "s": C_ONE,
-  "n": C_ZERO,
-  "d": C_ONE,
+  s: C_ONE,
+  n: C_ZERO,
+  d: C_ONE,
 
   /**
    * Calculates the absolute value
    *
    * Ex: new Fraction(-4).abs() => 4
    **/
-  "abs": function () {
-
+  abs: function () {
     return newFraction(this["n"], this["d"]);
   },
 
@@ -414,8 +411,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction(-4).neg() => 4
    **/
-  "neg": function () {
-
+  neg: function () {
     return newFraction(-this["s"] * this["n"], this["d"]);
   },
 
@@ -424,8 +420,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction({n: 2, d: 3}).add("14.9") => 467 / 30
    **/
-  "add": function (a, b) {
-
+  add: function (a, b) {
     parse(a, b);
     return newFraction(
       this["s"] * this["n"] * P["d"] + P["s"] * this["d"] * P["n"],
@@ -438,8 +433,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction({n: 2, d: 3}).add("14.9") => -427 / 30
    **/
-  "sub": function (a, b) {
-
+  sub: function (a, b) {
     parse(a, b);
     return newFraction(
       this["s"] * this["n"] * P["d"] - P["s"] * this["d"] * P["n"],
@@ -452,8 +446,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("-17.(345)").mul(3) => 5776 / 111
    **/
-  "mul": function (a, b) {
-
+  mul: function (a, b) {
     parse(a, b);
     return newFraction(
       this["s"] * P["s"] * this["n"] * P["n"],
@@ -466,8 +459,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("-17.(345)").inverse().div(3)
    **/
-  "div": function (a, b) {
-
+  div: function (a, b) {
     parse(a, b);
     return newFraction(
       this["s"] * P["s"] * this["n"] * P["d"],
@@ -480,8 +472,8 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("-17.(345)").clone()
    **/
-  "clone": function () {
-    return newFraction(this['s'] * this['n'], this['d']);
+  clone: function () {
+    return newFraction(this["s"] * this["n"], this["d"]);
   },
 
   /**
@@ -489,10 +481,9 @@ Fraction.prototype = {
    *
    * Ex: new Fraction('4.(3)').mod([7, 8]) => (13/3) % (7/8) = (5/6)
    **/
-  "mod": function (a, b) {
-
+  mod: function (a, b) {
     if (a === undefined) {
-      return newFraction(this["s"] * this["n"] % this["d"], C_ONE);
+      return newFraction((this["s"] * this["n"]) % this["d"], C_ONE);
     }
 
     parse(a, b);
@@ -515,7 +506,7 @@ Fraction.prototype = {
      * => (b2 * a1 % a2 * b1) / (b1 * b2)
      */
     return newFraction(
-      this["s"] * (P["d"] * this["n"]) % (P["n"] * this["d"]),
+      (this["s"] * (P["d"] * this["n"])) % (P["n"] * this["d"]),
       P["d"] * this["d"]
     );
   },
@@ -525,13 +516,15 @@ Fraction.prototype = {
    *
    * Ex: new Fraction(5,8).gcd(3,7) => 1/56
    */
-  "gcd": function (a, b) {
-
+  gcd: function (a, b) {
     parse(a, b);
 
     // gcd(a / b, c / d) = gcd(a, c) / lcm(b, d)
 
-    return newFraction(gcd(P["n"], this["n"]) * gcd(P["d"], this["d"]), P["d"] * this["d"]);
+    return newFraction(
+      gcd(P["n"], this["n"]) * gcd(P["d"], this["d"]),
+      P["d"] * this["d"]
+    );
   },
 
   /**
@@ -539,8 +532,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction(5,8).lcm(3,7) => 15
    */
-  "lcm": function (a, b) {
-
+  lcm: function (a, b) {
     parse(a, b);
 
     // lcm(a / b, c / d) = lcm(a, c) / gcd(b, d)
@@ -548,7 +540,10 @@ Fraction.prototype = {
     if (P["n"] === C_ZERO && this["n"] === C_ZERO) {
       return newFraction(C_ZERO, C_ONE);
     }
-    return newFraction(P["n"] * this["n"], gcd(P["n"], this["n"]) * gcd(P["d"], this["d"]));
+    return newFraction(
+      P["n"] * this["n"],
+      gcd(P["n"], this["n"]) * gcd(P["d"], this["d"])
+    );
   },
 
   /**
@@ -556,7 +551,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction([-3, 4]).inverse() => -4 / 3
    **/
-  "inverse": function () {
+  inverse: function () {
     return newFraction(this["s"] * this["d"], this["n"]);
   },
 
@@ -565,18 +560,22 @@ Fraction.prototype = {
    *
    * Ex: new Fraction(-1,2).pow(-3) => -8
    */
-  "pow": function (a, b) {
-
+  pow: function (a, b) {
     parse(a, b);
 
     // Trivial case when exp is an integer
 
-    if (P['d'] === C_ONE) {
-
-      if (P['s'] < C_ZERO) {
-        return newFraction((this['s'] * this["d"]) ** P['n'], this["n"] ** P['n']);
+    if (P["d"] === C_ONE) {
+      if (P["s"] < C_ZERO) {
+        return newFraction(
+          (this["s"] * this["d"]) ** P["n"],
+          this["n"] ** P["n"]
+        );
       } else {
-        return newFraction((this['s'] * this["n"]) ** P['n'], this["d"] ** P['n']);
+        return newFraction(
+          (this["s"] * this["n"]) ** P["n"],
+          this["d"] ** P["n"]
+        );
       }
     }
 
@@ -586,40 +585,40 @@ Fraction.prototype = {
     // <=> (cos(pi) + i*sin(pi))^(c/d) * (a/b)^(c/d) = x
     // <=> (cos(c*pi/d) + i*sin(c*pi/d)) * (a/b)^(c/d) = x       # DeMoivre's formula
     // From which follows that only for c=0 the root is non-complex
-    if (this['s'] < C_ZERO) return null;
+    if (this["s"] < C_ZERO) return null;
 
     // Now prime factor n and d
-    let N = factorize(this['n']);
-    let D = factorize(this['d']);
+    let N = factorize(this["n"]);
+    let D = factorize(this["d"]);
 
     // Exponentiate and take root for n and d individually
     let n = C_ONE;
     let d = C_ONE;
     for (let k in N) {
-      if (k === '1') continue;
-      if (k === '0') {
+      if (k === "1") continue;
+      if (k === "0") {
         n = C_ZERO;
         break;
       }
-      N[k] *= P['n'];
+      N[k] *= P["n"];
 
-      if (N[k] % P['d'] === C_ZERO) {
-        N[k] /= P['d'];
+      if (N[k] % P["d"] === C_ZERO) {
+        N[k] /= P["d"];
       } else return null;
       n *= BigInt(k) ** N[k];
     }
 
     for (let k in D) {
-      if (k === '1') continue;
-      D[k] *= P['n'];
+      if (k === "1") continue;
+      D[k] *= P["n"];
 
-      if (D[k] % P['d'] === C_ZERO) {
-        D[k] /= P['d'];
+      if (D[k] % P["d"] === C_ZERO) {
+        D[k] /= P["d"];
       } else return null;
       d *= BigInt(k) ** D[k];
     }
 
-    if (P['s'] < C_ZERO) {
+    if (P["s"] < C_ZERO) {
       return newFraction(d, n);
     }
     return newFraction(n, d);
@@ -630,8 +629,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction(19.6).equals([98, 5]);
    **/
-  "equals": function (a, b) {
-
+  equals: function (a, b) {
     parse(a, b);
     return this["s"] * this["n"] * P["d"] === P["s"] * P["n"] * this["d"]; // Same as compare() === 0
   },
@@ -641,10 +639,9 @@ Fraction.prototype = {
    *
    * Ex: new Fraction(19.6).equals([98, 5]);
    **/
-  "compare": function (a, b) {
-
+  compare: function (a, b) {
     parse(a, b);
-    let t = (this["s"] * this["n"] * P["d"] - P["s"] * P["n"] * this["d"]);
+    let t = this["s"] * this["n"] * P["d"] - P["s"] * P["n"] * this["d"];
 
     return (C_ZERO < t) - (t < C_ZERO);
   },
@@ -654,13 +651,16 @@ Fraction.prototype = {
    *
    * Ex: new Fraction('4.(3)').ceil() => (5 / 1)
    **/
-  "ceil": function (places) {
-
+  ceil: function (places) {
     places = C_TEN ** BigInt(places || 0);
 
-    return newFraction(this["s"] * places * this["n"] / this["d"] +
-      (places * this["n"] % this["d"] > C_ZERO && this["s"] >= C_ZERO ? C_ONE : C_ZERO),
-      places);
+    return newFraction(
+      (this["s"] * places * this["n"]) / this["d"] +
+        ((places * this["n"]) % this["d"] > C_ZERO && this["s"] >= C_ZERO
+          ? C_ONE
+          : C_ZERO),
+      places
+    );
   },
 
   /**
@@ -668,13 +668,16 @@ Fraction.prototype = {
    *
    * Ex: new Fraction('4.(3)').floor() => (4 / 1)
    **/
-  "floor": function (places) {
-
+  floor: function (places) {
     places = C_TEN ** BigInt(places || 0);
 
-    return newFraction(this["s"] * places * this["n"] / this["d"] -
-      (places * this["n"] % this["d"] > C_ZERO && this["s"] < C_ZERO ? C_ONE : C_ZERO),
-      places);
+    return newFraction(
+      (this["s"] * places * this["n"]) / this["d"] -
+        ((places * this["n"]) % this["d"] > C_ZERO && this["s"] < C_ZERO
+          ? C_ONE
+          : C_ZERO),
+      places
+    );
   },
 
   /**
@@ -682,8 +685,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction('4.(3)').round() => (4 / 1)
    **/
-  "round": function (places) {
-
+  round: function (places) {
     places = C_TEN ** BigInt(places || 0);
 
     /* Derivation:
@@ -701,18 +703,24 @@ Fraction.prototype = {
         where C = s >= 0 ? 1 : 0, to fix the >= for the positve case.
     */
 
-    return newFraction(this["s"] * places * this["n"] / this["d"] +
-      this["s"] * ((this["s"] >= C_ZERO ? C_ONE : C_ZERO) + C_TWO * (places * this["n"] % this["d"]) > this["d"] ? C_ONE : C_ZERO),
-      places);
+    return newFraction(
+      (this["s"] * places * this["n"]) / this["d"] +
+        this["s"] *
+          ((this["s"] >= C_ZERO ? C_ONE : C_ZERO) +
+            C_TWO * ((places * this["n"]) % this["d"]) >
+          this["d"]
+            ? C_ONE
+            : C_ZERO),
+      places
+    );
   },
 
   /**
-    * Rounds a rational number to a multiple of another rational number
-    *
-    * Ex: new Fraction('0.9').roundTo("1/8") => 7 / 8
-    **/
-  "roundTo": function (a, b) {
-
+   * Rounds a rational number to a multiple of another rational number
+   *
+   * Ex: new Fraction('0.9').roundTo("1/8") => 7 / 8
+   **/
+  roundTo: function (a, b) {
     /*
     k * x/y ≤ a/b < (k+1) * x/y
     ⇔ k ≤ a/b / (x/y) < (k+1)
@@ -721,8 +729,8 @@ Fraction.prototype = {
 
     parse(a, b);
 
-    const scaledN = this['n'] * P['d'];
-    const scaledD = this['d'] * P['n'];
+    const scaledN = this["n"] * P["d"];
+    const scaledD = this["d"] * P["n"];
     let divResult = scaledN / scaledD;
     const remainder = scaledN % scaledD;
 
@@ -730,7 +738,7 @@ Fraction.prototype = {
       divResult++;
     }
 
-    return newFraction(this['s'] * divResult * P['n'], P['d']);
+    return newFraction(this["s"] * divResult * P["n"], P["d"]);
   },
 
   /**
@@ -738,10 +746,11 @@ Fraction.prototype = {
    *
    * Ex: new Fraction(19.6).divisible(1.5);
    */
-  "divisible": function (a, b) {
-
+  divisible: function (a, b) {
     parse(a, b);
-    return !(!(P["n"] * this["d"]) || ((this["n"] * P["d"]) % (P["n"] * this["d"])));
+    return !(
+      !(P["n"] * this["d"]) || (this["n"] * P["d"]) % (P["n"] * this["d"])
+    );
   },
 
   /**
@@ -749,7 +758,7 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("100.'91823'").valueOf() => 100.91823918239183
    **/
-  'valueOf': function () {
+  valueOf: function () {
     // Best we can do so far
     return Number(this["s"] * this["n"]) / Number(this["d"]);
   },
@@ -759,13 +768,12 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("100.'91823'").toString() => "100.(91823)"
    **/
-  'toString': function (dec) {
-
+  toString: function (dec) {
     let N = this["n"];
     let D = this["d"];
 
     function trunc(x) {
-      return typeof x === 'bigint' ? x : Math.floor(x);
+      return typeof x === "bigint" ? x : Math.floor(x);
     }
 
     dec = dec || 15; // 15 = decimal places when no repetition
@@ -773,7 +781,7 @@ Fraction.prototype = {
     let cycLen = cycleLen(N, D); // Cycle length
     let cycOff = cycleStart(N, D, cycLen); // Cycle start
 
-    let str = this['s'] < C_ZERO ? "-" : "";
+    let str = this["s"] < C_ZERO ? "-" : "";
 
     // Append integer part
     str += trunc(N / D);
@@ -781,25 +789,23 @@ Fraction.prototype = {
     N %= D;
     N *= C_TEN;
 
-    if (N)
-      str += ".";
+    if (N) str += ".";
 
     if (cycLen) {
-
-      for (let i = cycOff; i--;) {
+      for (let i = cycOff; i--; ) {
         str += trunc(N / D);
         N %= D;
         N *= C_TEN;
       }
       str += "(";
-      for (let i = cycLen; i--;) {
+      for (let i = cycLen; i--; ) {
         str += trunc(N / D);
         N %= D;
         N *= C_TEN;
       }
       str += ")";
     } else {
-      for (let i = dec; N && i--;) {
+      for (let i = dec; N && i--; ) {
         str += trunc(N / D);
         N %= D;
         N *= C_TEN;
@@ -813,11 +819,10 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("1.'3'").toFraction() => "4 1/3"
    **/
-  'toFraction': function (showMixed) {
-
+  toFraction: function (showMixed) {
     let n = this["n"];
     let d = this["d"];
-    let str = this['s'] < C_ZERO ? "-" : "";
+    let str = this["s"] < C_ZERO ? "-" : "";
 
     if (d === C_ONE) {
       str += n;
@@ -830,7 +835,7 @@ Fraction.prototype = {
       }
 
       str += n;
-      str += '/';
+      str += "/";
       str += d;
     }
     return str;
@@ -841,11 +846,10 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("1.'3'").toLatex() => "\frac{4}{3}"
    **/
-  'toLatex': function (showMixed) {
-
+  toLatex: function (showMixed) {
     let n = this["n"];
     let d = this["d"];
-    let str = this['s'] < C_ZERO ? "-" : "";
+    let str = this["s"] < C_ZERO ? "-" : "";
 
     if (d === C_ONE) {
       str += n;
@@ -858,9 +862,9 @@ Fraction.prototype = {
 
       str += "\\frac{";
       str += n;
-      str += '}{';
+      str += "}{";
       str += d;
-      str += '}';
+      str += "}";
     }
     return str;
   },
@@ -870,10 +874,9 @@ Fraction.prototype = {
    *
    * Ex: new Fraction("7/8").toContinued() => [0,1,7]
    */
-  'toContinued': function () {
-
-    let a = this['n'];
-    let b = this['d'];
+  toContinued: function () {
+    let a = this["n"];
+    let b = this["d"];
     let res = [];
 
     do {
@@ -886,26 +889,24 @@ Fraction.prototype = {
     return res;
   },
 
-  "simplify": function (eps) {
-
+  simplify: function (eps) {
     eps = eps || 0.001;
 
-    const thisABS = this['abs']();
-    const cont = thisABS['toContinued']();
+    const thisABS = this["abs"]();
+    const cont = thisABS["toContinued"]();
 
     for (let i = 1; i < cont.length; i++) {
-
       let s = newFraction(cont[i - 1], C_ONE);
       for (let k = i - 2; k >= 0; k--) {
-        s = s['inverse']()['add'](cont[k]);
+        s = s["inverse"]()["add"](cont[k]);
       }
 
-      if (Math.abs(s['sub'](thisABS).valueOf()) < eps) {
-        return s['mul'](this['s']);
+      if (Math.abs(s["sub"](thisABS).valueOf()) < eps) {
+        return s["mul"](this["s"]);
       }
     }
     return this;
-  }
+  },
 };
 
 Object.defineProperty(Fraction, "__esModule", { 'value': true });
