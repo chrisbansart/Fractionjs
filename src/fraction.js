@@ -81,10 +81,10 @@ function newFraction(n, d) {
 
   n = n < C_ZERO ? -n : n;
 
-  const a = gcd(n, d);
+  // const a = gcd(n, d);
 
-  f["n"] = n / a;
-  f["d"] = d / a;
+  f["n"] = n; // / a;
+  f["d"] = d; // / a;
   return f;
 }
 
@@ -382,8 +382,10 @@ function Fraction(a, b) {
     this["s"] = P["s"];
     this["n"] = P["n"]; // / a;
     this["d"] = P["d"]; // / a;
+    this.nonReduced = true;
   } else {
     return newFraction(P["s"] * P["n"], P["d"]);
+    this.nonReduced = true;
   }
 }
 
