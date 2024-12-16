@@ -376,7 +376,7 @@ function gcd(a, b) {
  */
 function Fraction(a, b) {
   parse(a, b);
-
+  console.log("****************** Fraction - Constructor");
   this.nonReduced = true;
   if (this instanceof Fraction) {
     //  a = gcd(P["d"], P["n"]); // Abuse a
