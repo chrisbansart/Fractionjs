@@ -377,15 +377,14 @@ function gcd(a, b) {
 function Fraction(a, b) {
   parse(a, b);
 
+  this.nonReduced = true;
   if (this instanceof Fraction) {
     //  a = gcd(P["d"], P["n"]); // Abuse a
     this["s"] = P["s"];
     this["n"] = P["n"]; // / a;
     this["d"] = P["d"]; // / a;
-    this.nonReduced = true;
   } else {
     return newFraction(P["s"] * P["n"], P["d"]);
-    this.nonReduced = true;
   }
 }
 
